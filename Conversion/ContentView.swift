@@ -8,54 +8,73 @@
 import SwiftUI
 
 struct ContentView: View {
+    
+    enum TempType: String, CaseIterable {
+        case celsius = "Celsius"
+        case fahrenheit = "Fahrenheit"
+        case kelvin = "Kelvin"
+    }
+    
     @State private var userInput = ""
-    @State private var inputUnits = 2
-    @State private var outputUnits = 0
+    @State private var inputUnits: TempType = .celsius
+    @State private var outputUnits: TempType = .fahrenheit
     
-    let degrees = ["Celsius", "Fahrenheit", "Kelvin"]
-    
-    var convert: Double {
-        let input = Double(userInput) ?? 0
+    var conversion: Double {
+        let inputAmount = Double(userInput) ?? 0
+        var conversionInput: Double = 0
+        var conversionResult: Double = 0
         
-        let from = Measurement(value: input, unit: UnitLength.meters)
+        switch inputUnits {
+        case .celsius:
+            conversionInput = inputAmount + 273.15
+        case .fahrenheit:
+            conversionInput = (inputAmount - 32) * 5 / 9 + 273.15
+        case .kelvin:
+            conversionInput = inputAmount
+        }
         
-        return 0
+        switch outputUnits {
+        case .celsius:
+            conversionResult = conversionInput - 273.15
+        case .fahrenheit:
+            conversionResult = ((conversionInput - 273.15) * 9 / 5) + 32
+        case .kelvin:
+            conversionResult = conversionInput
+        }
+        
+        return conversionResult
     }
     
     var body: some View {
         NavigationView {
             Form {
                 Section(header: Text("This number...")) {
-                    TextField("degrees", text: $userInput)
+                    TextField("Enter Amount", text: $userInput)
                         .keyboardType(.decimalPad)
-                }
-                
-                Section(header: Text("From...")) {
-                    Picker("Unit of Length", selection: $inputUnits) {
-                        ForEach(0 ..< degrees.count) {
-                            Text("\(self.degrees[$0])")
+                    Picker("Input Amount", selection: $inputUnits) {
+                        ForEach(TempType.allCases, id: \.self) {
+                            Text($0.rawValue)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
                 }
                 
-                Section(header: Text("Into...")) {
-                    Picker("Unit of Length", selection: $outputUnits) {
-                        ForEach(0 ..< degrees.count) {
-                            Text("\(self.degrees[$0])")
+                Section(header: Text("Result")) {
+                    Picker("Input Amount", selection: $outputUnits) {
+                        ForEach(TempType.allCases, id: \.self) {
+                            Text($0.rawValue)
                         }
                     }
                     .pickerStyle(SegmentedPickerStyle())
-                }
-                
-                Section(header: Text("Result:")) {
                     
+                    Text("\(conversion, specifier: "%.2f")")
                 }
             }
             .navigationTitle("Converrrt...")
         }
     }
 }
+    
 
 struct ContentView_Previews: PreviewProvider {
     static var previews: some View {
